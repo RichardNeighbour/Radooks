@@ -1,0 +1,38 @@
+name: Node.js CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm ci
+    - run: npm run lint
+      env:
+        CI: true
+    - run: npm test
+      env:
+        CI: true
+    - name: Deploy to Staging
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        echo "Deploying to staging environment"
+        # Actual deployment commands will vary based on the staging environment
+        # For example, using SSH to deploy to a server:
+        # ssh user@staging-server 'cd /path/to/project && git pull && npm install && pm2 restart all'
+      env:
+        CI: true
